@@ -1,7 +1,6 @@
 package primedirective;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PrimeFactorSequence {
     private List<Integer> primes;
@@ -28,6 +27,23 @@ public class PrimeFactorSequence {
     public List<Integer> primeFactorSequence() {
         List<Integer> seq = new ArrayList<>();
         // TODO: Implement this method
+        seq.add(0);
+        if (upperBound > 0) {
+            seq.add(0);
+        }
+        for (int i = 2; i <= upperBound; i++) {
+            int thisNum = i;
+            int pFactorNum = 0;
+                for (int j = 0; j < primes.size(); j++) {
+                    if (thisNum % primes.get(j) == 0) {
+                        thisNum = thisNum /primes.get(j);
+                        pFactorNum++;
+                        j--;
+                    }
+                }
+
+            seq.add(pFactorNum);
+        }
         return seq;
     }
 
@@ -41,7 +57,14 @@ public class PrimeFactorSequence {
      */
     public List<Integer> numbersWithMPrimeFactors(int m) {
         List<Integer> seq = new ArrayList<>();
-        // TODO: Implement this method
+        List<Integer> primeSeq = primeFactorSequence();
+
+        for (int i = 0; i < primeSeq.size(); i++) {
+            if (primeSeq.get(i) == m) {
+                seq.add(i);
+            }
+        }
+
         return seq;
     }
 
@@ -59,6 +82,13 @@ public class PrimeFactorSequence {
      */
     public List<IntPair> numbersWithMPrimeFactorsAndSmallGap(int m, int gap) {
         List<IntPair> listOfPairs = new ArrayList<>();
+        List<Integer> primeSeq = numbersWithMPrimeFactors(m);
+
+        for (int i = 1; i < primeSeq.size(); i++) {
+            if (Math.abs(primeSeq.get(i - 1) - primeSeq.get(i)) <= gap) {
+                listOfPairs.add(new IntPair(primeSeq.get(i - 1), primeSeq.get(i)));
+            }
+        }
         // TODO: Implement this method
         return listOfPairs;
     }
@@ -76,8 +106,57 @@ public class PrimeFactorSequence {
      * @return a string representation of the smallest transformation sequence
      */
     public String changeToPrime(int n) {
-        // TODO: Implement this method
+        // Early check if no primes above n can be found within bounds
+        if (n > upperBound) {
+            return "-";
+        }
+        if (primes.get(primes.size() - 1) < n) {
+            return "-";
+        }
+        if (primes.contains(n)) {
+            return "";
+        }
+
+        Queue<TransformationStep> queue = new LinkedList<>();
+        List<Integer> visited = new ArrayList<>();
+        queue.add(new TransformationStep(n, ""));
+
+        while (!queue.isEmpty()) {
+            TransformationStep current = queue.poll();
+            int currentNum = current.currentNumber;
+            String currentSteps = current.steps;
+            // 0-step transformation
+            int zeroStepNum = 2 * currentNum + 1;
+            if (zeroStepNum <= upperBound && !visited.contains(zeroStepNum)) {
+                if (primes.contains(zeroStepNum)) {
+                    return currentSteps + "0";
+                }
+                queue.add(new TransformationStep(zeroStepNum, currentSteps + "0"));
+                visited.add(zeroStepNum);
+            }
+            // 1-step transformation
+            int oneStepNum = currentNum + 1;
+            if (oneStepNum <= upperBound && !visited.contains(oneStepNum)) {
+                if (primes.contains(oneStepNum)) {
+                    return currentSteps + "1";
+                }
+                queue.add(new TransformationStep(oneStepNum, currentSteps + "1"));
+                visited.add(oneStepNum);
+            }
+
+
+
+        }
         return "-";
     }
 
+    private static class TransformationStep {
+        int currentNumber;
+        String steps;
+
+        public TransformationStep(int currentNumber, String steps) {
+            this.currentNumber = currentNumber;
+            this.steps = steps;
+        }
+    }
 }
